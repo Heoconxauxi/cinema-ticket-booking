@@ -11,7 +11,7 @@
 
         <div class="flex-shrink-0">
             <div id="avatar-container">
-                <img id="avatar" src="{{ asset('assets/img/default-avatar.png') }}" alt="Avatar">
+                <img id="avatar" src="{{ asset('assets/imgs/1.png') }}" alt="Avatar">
             </div>
         </div>
     </div>

@@ -16,7 +16,7 @@ class LoginController extends Controller
     {
         // Nếu đã đăng nhập và là admin, chuyển thẳng vào dashboard
         if (Auth::check() && (Auth::user()->Quyen == 1 || Auth::user()->Quyen == 2)) {
-            return redirect()->route('admin.home');
+            return redirect()->route('admin.dashboard');
         }
         return view('admin.auth.login');
     }
@@ -65,7 +65,7 @@ class LoginController extends Controller
         
         
         // 6. SỬA LỖI 2: Dùng redirect()->route() để luôn đi đến dashboard
-        return redirect()->route('admin.home');
+        return redirect()->route('admin.dashboard');
     }
 
     /**

@@ -11,166 +11,157 @@
             </a>
         </div>
 
-        {{-- Form trỏ đến PhimController@store --}}
         <form id="addFilmForm" action="{{ route('admin.phim.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf {{-- Bắt buộc cho bảo mật --}}
-
+            @csrf
             <div class="row">
                 {{-- CỘT BÊN TRÁI --}}
                 <div class="col-md-6">
+                    {{-- Tên Phim --}}
                     <div class="form-group mb-3">
-                        <label for="ten_phim">Tên phim</label>
-                        <input type="text" class="form-control @error('ten_phim') is-invalid @enderror" id="ten_phim" name="ten_phim" value="{{ old('ten_phim') }}" placeholder="Nhập tên phim">
-                        @error('ten_phim')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
+                        <label for="TenPhim">Tên phim</label>
+                        <input type="text" class="form-control @error('TenPhim') is-invalid @enderror" id="TenPhim" name="TenPhim" value="{{ old('TenPhim') }}" placeholder="Nhập tên phim">
+                        @error('TenPhim') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror
                     </div>
-
+                    {{-- Phân Loại --}}
                     <div class="form-group mb-3">
-                        <label for="phan_loai">Phân loại</label>
-                        <select class="form-select @error('phan_loai') is-invalid @enderror" id="phan_loai" name="phan_loai">
-                            <option value="P" {{ old('phan_loai') == 'P' ? 'selected' : '' }}>Phổ thông</option>
-                            <option value="T13" {{ old('phan_loai') == 'T13' ? 'selected' : '' }}>T13</option>
-                            <option value="T16" {{ old('phan_loai') == 'T16' ? 'selected' : '' }}>T16</option>
-                            <option value="T18" {{ old('phan_loai') == 'T18' ? 'selected' : '' }}>T18</option>
+                        <label for="PhanLoai">Phân loại</label>
+                        <select class="form-select @error('PhanLoai') is-invalid @enderror" id="PhanLoai" name="PhanLoai">
+                            <option value="P" {{ old('PhanLoai') == 'P' ? 'selected' : '' }}>P - Phổ thông</option>
+                            <option value="T13" {{ old('PhanLoai') == 'T13' ? 'selected' : '' }}>T13 - Cấm trẻ dưới 13</option>
+                            <option value="T16" {{ old('PhanLoai') == 'T16' ? 'selected' : '' }}>T16 - Cấm trẻ dưới 16</option>
+                            <option value="T18" {{ old('PhanLoai') == 'T18' ? 'selected' : '' }}>T18 - Cấm trẻ dưới 18</option>
                         </select>
-                        @error('phan_loai')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
+                        @error('PhanLoai') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror
                     </div>
-
+                    {{-- Đạo diễn, Diễn viên --}}
+                    <div class="form-group mb-3"> <label for="DaoDien">Đạo diễn</label> <input type="text" class="form-control @error('DaoDien') is-invalid @enderror" id="DaoDien" name="DaoDien" value="{{ old('DaoDien') }}"> @error('DaoDien') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror </div>
+                    <div class="form-group mb-3"> <label for="DienVien">Diễn viên</label> <input type="text" class="form-control @error('DienVien') is-invalid @enderror" id="DienVien" name="DienVien" value="{{ old('DienVien') }}"> @error('DienVien') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror </div>
+                    {{-- Quốc Gia --}}
                     <div class="form-group mb-3">
-                        <label for="dao_dien">Đạo diễn</label>
-                        <input type="text" class="form-control @error('dao_dien') is-invalid @enderror" id="dao_dien" name="dao_dien" value="{{ old('dao_dien') }}" placeholder="Nhập tên đạo diễn">
-                        @error('dao_dien')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="dien_vien">Diễn viên</label>
-                        <input type="text" class="form-control @error('dien_vien') is-invalid @enderror" id="dien_vien" name="dien_vien" value="{{ old('dien_vien') }}" placeholder="Nhập tên diễn viên">
-                        @error('dien_vien')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    {{-- **CHỈNH SỬA NHỎ Ở ĐÂY** --}}
-                    {{-- Logic $phim_nations là của trang edit, trang create chỉ cần old() --}}
-                    @php
-                    $selected_nations = old('quoc_gia') ?? [];
-                    @endphp
-
-                    @foreach ($defined_nations as $nation)
-                    <div class="form-check me-3 mb-2">
-                        <input class="form-check-input" type="checkbox" name="quoc_gia[]" value="{{ $nation }}" id="nation_{{ $loop->index }}" @if(in_array($nation, $selected_nations)) checked @endif>
-                        <label class="form-check-label" for="nation_{{ $loop->index }}">
-                            {{ $nation }}
-                        </label>
-                    </div>
-                    @endforeach
-
-                    <div class="d-flex align-items-center">
-                        <label for="other_nation" class="me-2">Khác: </label>
-                        <input class="form-control" style="width: 250px;" type="text" name="other_nation" value="{{ old('other_nation', $other_nation ?? '') }}" placeholder="Nhập khác... (cách nhau bằng dấu phẩy)">
-                    </div>
-
-
-                    <div class="form-group mb-3">
-                        <label for="mo_ta">Mô tả phim</label>
-                        <textarea class="form-control @error('mo_ta') is-invalid @enderror" id="mo_ta" name="mo_ta" rows="10" placeholder="Nhập mô tả phim">{{ old('mo_ta') }}</textarea>
-                        @error('mo_ta')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
-                    </div>
-                </div>
-
-                {{-- CỘT BÊN PHẢI (Giữ nguyên, đã rất tốt) --}}
-                <div class="col-md-6">
-                    <div class="form-group mb-3">
-                        <label for="the_loai">Thể loại</label>
+                        <label>Quốc gia</label>
                         <div class="d-flex flex-wrap">
-                            @foreach ($the_loais as $genre)
-                            <div class="form-check me-3">
-                                <input class="form-check-input" type="checkbox" name="the_loai[]" value="{{ $genre->MaTheLoai }}" id="the_loai_{{ $genre->MaTheLoai }}" {{ (is_array(old('the_loai')) && in_array($genre->MaTheLoai, old('the_loai'))) ? 'checked' : '' }}>
-                                <label class="form-check-label" for="the_loai_{{ $genre->MaTheLoai }}">{{ $genre->TenTheLoai }}</label>
+                            @php $selected_nations = old('quoc_gia') ?? []; @endphp
+                            @foreach ($defined_nations as $nation)
+                            <div class="form-check me-3 mb-2">
+                                <input class="form-check-input" type="checkbox" name="quoc_gia[]" value="{{ $nation }}" id="nation_{{ $loop->index }}" @if(in_array($nation, $selected_nations)) checked @endif>
+                                <label class="form-check-label" for="nation_{{ $loop->index }}">{{ $nation }}</label>
                             </div>
                             @endforeach
-                        </div>
-                        @error('the_loai')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="nam_phat_hanh">Năm phát hành</label>
-                        <input type="number" class="form-control @error('nam_phat_hanh') is-invalid @enderror" id="nam_phat_hanh" name="nam_phat_hanh" value="{{ old('nam_phat_hanh') }}" placeholder="Nhập năm phát hành">
-                        @error('nam_phat_hanh')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="thoi_luong">Thời lượng (phút)</label>
-                        <input type="number" class="form-control @error('thoi_luong') is-invalid @enderror" id="thoi_luong" name="thoi_luong" value="{{ old('thoi_luong') }}" placeholder="Nhập thời lượng phim">
-                        @error('thoi_luong')
-                        <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                        @enderror
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label for="status">Trạng thái</label>
-                        <select class="form-select" id="status" name="status">
-                            <option value="1" {{ old('status', 1) == 1 ? 'selected' : '' }}>Online</option>
-                            <option value="0" {{ old('status') == 0 ? 'selected' : '' }}>Offline</option>
-                            <option value="2" {{ old('status') == 2 ? 'selected' : '' }}>Coming soon</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group row mb-3">
-                        <div class="col-6">
-                            <label for="anh_phim">Chọn ảnh phim</label>
-                            <input type="file" class="form-control @error('anh_phim') is-invalid @enderror" id="anh_phim" name="anh_phim" accept="image/*" onchange="previewImage(event, 'preview')">
-                            @error('anh_phim')
-                            <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                            @enderror
-                            <div class="form-group d-flex justify-content-center mt-3">
-                                <img id="preview" src="#" alt="Ảnh xem trước" class="img-fluid" style="display:none; max-width: 100%; max-height: 10rem;" />
+                            <div class="d-flex align-items-center mt-1">
+                                <label for="other_nation" class="me-2 text-nowrap">Khác: </label>
+                                <input class="form-control" style="width: 250px;" type="text" name="other_nation" value="{{ old('other_nation') }}" placeholder="Nhập khác... (cách nhau bằng dấu phẩy)">
                             </div>
                         </div>
-                        <div class="col-6">
-                            <label for="banner">Chọn ảnh banner</label>
-                            <input type="file" class="form-control @error('banner') is-invalid @enderror" id="banner" name="banner" accept="image/*" onchange="previewImage(event, 'previewbanner')">
-                            @error('banner')
-                            <small class="text-danger m-2 text-xs">{{ $message }}</small>
-                            @enderror
-                            <div class="form-group d-flex justify-content-center mt-3">
-                                <img id="previewbanner" src="#" alt="Ảnh xem trước" class="img-fluid" style="display:none; max-width: 100%; max-height: 10rem;" />
-                            </div>
+                        @error('quoc_gia') <small class="text-danger m-2 text-xs d-block">{{ $message }}</small> @enderror
+                        @error('other_nation') <small class="text-danger m-2 text-xs d-block">{{ $message }}</small> @enderror
+                    </div>
+                    {{-- Mô Tả --}}
+                    <div class="form-group mb-3"> <label for="MoTa">Mô tả phim</label> <textarea class="form-control @error('MoTa') is-invalid @enderror" id="MoTa" name="MoTa" rows="10">{{ old('MoTa') }}</textarea> @error('MoTa') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror </div>
+                </div>
+
+                {{-- CỘT BÊN PHẢI --}}
+                <div class="col-md-6">
+                    {{-- Thể Loại --}}
+                    <div class="form-group mb-3"> <label>Thể loại</label>
+                        <div class="d-flex flex-wrap border rounded p-2" style="max-height: 150px; overflow-y: auto;"> @foreach ($the_loais as $genre) <div class="form-check me-3 mb-1 w-45"> <input class="form-check-input" type="checkbox" name="the_loai[]" value="{{ $genre->MaTheLoai }}" id="genre_{{ $genre->MaTheLoai }}" {{ (is_array(old('the_loai')) && in_array($genre->MaTheLoai, old('the_loai'))) ? 'checked' : '' }}> <label class="form-check-label" for="genre_{{ $genre->MaTheLoai }}">{{ $genre->TenTheLoai }}</label> </div> @endforeach </div> @error('the_loai') <small class="text-danger m-2 text-xs d-block">{{ $message }}</small> @enderror
+                    </div>
+                    {{-- Năm Phát Hành, Thời Lượng --}}
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3"> <label for="NamPhatHanh">Năm phát hành</label> <input type="number" class="form-control @error('NamPhatHanh') is-invalid @enderror" id="NamPhatHanh" name="NamPhatHanh" value="{{ old('NamPhatHanh') }}"> @error('NamPhatHanh') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror </div>
+                        <div class="col-md-6 form-group mb-3"> <label for="ThoiLuong">Thời lượng (phút)</label> <input type="number" class="form-control @error('ThoiLuong') is-invalid @enderror" id="ThoiLuong" name="ThoiLuong" value="{{ old('ThoiLuong') }}"> @error('ThoiLuong') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror </div>
+                    </div>
+                    {{-- Trạng Thái --}}
+                    <div class="form-group mb-3"> <label for="TrangThai">Trạng thái</label> <select class="form-select @error('TrangThai') is-invalid @enderror" id="TrangThai" name="TrangThai">
+                            <option value="1" {{ old('TrangThai', 1) == 1 ? 'selected' : '' }}>Online</option>
+                            <option value="0" {{ old('TrangThai') === '0' ? 'selected' : '' }}>Offline</option>
+                            <option value="2" {{ old('TrangThai') == 2 ? 'selected' : '' }}>Coming soon</option>
+                        </select> @error('TrangThai') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror </div>
+                    {{-- Ảnh Poster, Banner --}}
+                    <div class="row">
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="Anh">URL Ảnh Poster (*)</label>
+                            {{-- Đổi type="file" thành type="url" --}}
+                            <input type="url" class="form-control @error('Anh') is-invalid @enderror" id="Anh" name="Anh" value="{{ old('Anh', $phim->Anh) }}" {{-- Giữ URL cũ --}} placeholder="Nhập URL mới để thay thế" required {{-- Keep oninput for typing --}} oninput="previewUrlImage(this.value, 'preview')" {{-- Add onpaste to handle pasting --}} onpaste="handlePaste(event, 'preview')">
+                            @error('Anh') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror
+                            {{-- Thẻ img để xem trước URL --}}
+                            <img id="preview" src="#" alt="Xem trước Poster" class="img-fluid mt-2 border" style="display:none; max-height: 10rem;" onerror="this.style.display='none';"> {{-- Ẩn nếu URL lỗi --}}
+                        </div>
+                        <div class="col-md-6 form-group mb-3">
+                            <label for="Banner">URL Ảnh Banner</label>
+                            {{-- Đổi type="file" thành type="url" --}}
+                            <input type="url" class="form-control @error('Banner') is-invalid @enderror" id="Banner" name="Banner" value="{{ old('Banner', $phim->Banner) }}" {{-- Giữ URL cũ --}} placeholder="Nhập URL mới để thay thế" oninput="previewUrlImage(this.value, 'previewbanner')" onpaste="handlePaste(event, 'previewbanner')">
+                            @error('Banner') <small class="text-danger m-2 text-xs">{{ $message }}</small> @enderror
+                            {{-- Thẻ img để xem trước URL --}}
+                            <img id="previewbanner" src="#" alt="Xem trước Banner" class="img-fluid mt-2 border" style="display:none; max-height: 10rem;" onerror="this.style.display='none';"> {{-- Ẩn nếu URL lỗi --}}
                         </div>
                     </div>
-
                 </div>
             </div>
-
-            <button type="submit" class="btn bg-gradient-info px-5 mt-3">Lưu</button>
+            <button type="submit" class="btn bg-gradient-info px-5 mt-3">Lưu Phim</button>
         </form>
     </div>
 </div>
 @endsection
 
 @push('scripts')
-{{-- Giữ lại hàm preview ảnh (đã đúng) --}}
 <script>
-    function previewImage(event, previewId) {
-        var reader = new FileReader();
-        reader.onload = function() {
-            var output = document.getElementById(previewId);
-            output.src = reader.result;
-            output.style.display = 'block';
+    function previewUrlImage(url, previewId) {
+        const imgElement = document.getElementById(previewId);
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) { // Basic URL check
+            imgElement.src = url;
+            imgElement.style.display = 'block';
+        } else {
+            imgElement.src = '#';
+            imgElement.style.display = 'none';
+        }
+        // Handle image loading errors
+        imgElement.onerror = function() {
+            this.style.display = 'none';
+            this.src = '#';
         };
-        reader.readAsDataURL(event.target.files[0]);
     }
+
+    // New function to handle pasting
+    function handlePaste(event, previewId) {
+        // Prevent default paste behavior if needed (usually not necessary here)
+        // event.preventDefault(); 
+
+        // Get pasted text using clipboardData API
+        const pastedText = (event.clipboardData || window.clipboardData).getData('text');
+
+        // Use setTimeout to allow the input value to update *before* previewing
+        // A tiny delay (e.g., 10 milliseconds) is often enough
+        setTimeout(() => {
+            previewUrlImage(pastedText, previewId);
+            // Optionally, explicitly set the input value if needed, though usually not required
+            // event.target.value = pastedText; 
+        }, 10);
+    }
+
+    // Trigger preview for old values on page load (keep this)
+    document.addEventListener('DOMContentLoaded', function() {
+        const anhInput = document.getElementById('Anh');
+        const bannerInput = document.getElementById('Banner');
+        if (anhInput && anhInput.value) {
+            previewUrlImage(anhInput.value, 'preview');
+        }
+        if (bannerInput && bannerInput.value) {
+            previewUrlImage(bannerInput.value, 'previewbanner');
+        }
+        // Also trigger for edit page's old image previews if they exist by ID
+        const anhOld = document.getElementById('preview_old');
+        const bannerOld = document.getElementById('previewbanner_old');
+        if (anhOld && anhOld.src && anhOld.src !== '#') {
+            anhOld.onerror = function() {
+                this.style.display = 'none';
+            }; // Add error handling too
+        }
+        if (bannerOld && bannerOld.src && bannerOld.src !== '#') {
+            bannerOld.onerror = function() {
+                this.style.display = 'none';
+            }; // Add error handling too
+        }
+    });
 
 </script>
 @endpush

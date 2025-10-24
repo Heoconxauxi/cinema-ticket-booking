@@ -6,44 +6,34 @@ use App\Http\Controllers\Controller;
 use App\Models\Phim;
 use App\Models\TheLoai;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule; // Thêm Rule để validate unique khi update
+use Illuminate\Support\Facades\Auth;
 
 class PhimController extends Controller
 {
-    /**
-     * Danh sách quốc gia có sẵn, dùng chung cho create và edit
-     */
-    private $defined_nations = [
-        'Việt Nam', 'Mỹ', 'Hàn Quốc', 'Nhật Bản', 
-        'Trung Quốc', 'Anh', 'Pháp', 'Thái Lan', 'Âu Mỹ'
-    ];
-
     /**
      * Hiển thị danh sách phim (trang index).
      */
     public function index(Request $request)
     {
-        // 1. Lấy giá trị per_page từ request, mặc định là 10 (bạn có thể đổi thành 5)
-        $perPage = $request->input('per_page', 5);
+        // Lấy tham số tìm kiếm và phân trang từ request
+        $search = $request->input('searchString', '');
+        $per_page = $request->input('per_page', 5); // Lấy per_page, mặc định 5
 
-        // 2. Validate giá trị để đảm bảo nó là 5, 10, hoặc 20
-        if (!in_array($perPage, [5, 10, 20])) {
-            $perPage = 5; // Nếu giá trị không hợp lệ, quay về mặc định
-        }
-
-        $search = $request->input('search', '');
+        // Query Phim, eager load theLoais
         $query = Phim::with('theLoais');
 
+        // Áp dụng bộ lọc tìm kiếm nếu có
         if ($search) {
             $query->where('TenPhim', 'like', '%' . $search . '%');
         }
 
-        // 3. Sử dụng biến $perPage thay vì số 5 cứng
-        $list_phim = $query->orderBy('NgayTao', 'desc')->paginate($perPage);
-        
-        // 4. Trả về view
-        return view('admin.phim.index', compact('list_phim', 'search'));
+        // Lấy danh sách, sắp xếp và phân trang
+        $list_phim = $query->orderBy('NgayTao', 'desc')->paginate($per_page);
+
+        // Truyền dữ liệu ra view
+        return view('admin.phim.index', compact('list_phim', 'search', 'per_page'));
     }
 
     /**
@@ -51,11 +41,9 @@ class PhimController extends Controller
      */
     public function create()
     {
-        $the_loais = TheLoai::where('TrangThai', 1)->get();
-        
-        // **SỬA: Truyền danh sách quốc gia sang view**
-        $defined_nations = $this->defined_nations;
-        
+        $the_loais = TheLoai::where('TrangThai', 1)->orderBy('TenTheLoai')->get();
+        // Định nghĩa sẵn các quốc gia
+        $defined_nations = ['Âu Mỹ', 'Hàn Quốc', 'Trung Quốc', 'Anh', 'Việt Nam', 'Nhật Bản', 'Thái Lan'];
         return view('admin.phim.create', compact('the_loais', 'defined_nations'));
     }
 
@@ -64,59 +52,57 @@ class PhimController extends Controller
      */
     public function store(Request $request)
     {
-        // **SỬA: Thay đổi validation cho QuocGia**
-        $request->validate([
-            'TenPhim' => 'required|string|max:255|unique:phim',
+        // === SỬA VALIDATION ===
+        $data = $request->validate([
+            'TenPhim' => 'required|string|max:255|unique:phim,TenPhim',
             'ThoiLuong' => 'required|integer|min:1',
-            // 'QuocGia' không cần validate trực tiếp
-            'quoc_gia' => 'nullable|array', // Đây là mảng checkbox
-            'other_nation' => 'nullable|string', // Đây là ô "Khác"
+            'PhanLoai' => 'required|string',
             'DaoDien' => 'required|string|max:255',
             'DienVien' => 'required|string|max:255',
             'NamPhatHanh' => 'required|integer',
-            'PhanLoai' => 'required|string|max:50',
             'MoTa' => 'required|string',
-            'Anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'Banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
-            'the_loais' => 'nullable|array',
-            'the_loais.*' => 'exists:theloai,MaTheLoai',
+            // Đổi validation cho ảnh: url và nullable (hoặc required nếu bạn muốn bắt buộc nhập URL)
+            'Anh' => 'required|url|max:1000', // Giới hạn độ dài URL nếu cần
+            'Banner' => 'nullable|url|max:1000',
+            'the_loai' => 'nullable|array',
+            'the_loai.*' => 'exists:theloai,MaTheLoai',
+            'quoc_gia' => 'nullable|array',
+            'other_nation' => 'nullable|string|max:255',
+            'TrangThai' => 'required|integer|in:0,1,2',
         ]);
 
-        // Lấy tất cả dữ liệu, ngoại trừ 2 trường quốc gia ảo
-        $data = $request->except(['quoc_gia', 'other_nation']);
-
-        // **SỬA: Gộp 2 trường quốc gia thành 1 chuỗi JSON**
-        $quocGiaData = [
-            'selected' => $request->input('quoc_gia', []),
-            'other' => $request->input('other_nation', '')
-        ];
-        
-        // Lưu chuỗi JSON vào cột 'QuocGia'
-        $data['QuocGia'] = json_encode($quocGiaData);
-        // **KẾT THÚC SỬA**
-
-
-        if ($request->hasFile('Anh')) {
-            $path = $request->file('Anh')->store('uploads/phim', 'public');
-            $data['Anh'] = $path;
+        // 1. Xử lý Quốc Gia (giữ nguyên)
+        $nations = $request->input('quoc_gia', []);
+        if ($request->filled('other_nation')) {
+            $otherNationsArray = array_map('trim', explode(',', $request->input('other_nation')));
+            $nations = array_merge($nations, $otherNationsArray);
         }
+        $data['QuocGia'] = implode(', ', array_unique($nations));
 
-        if ($request->hasFile('Banner')) {
-            $path_banner = $request->file('Banner')->store('uploads/banners', 'public');
-            $data['Banner'] = $path_banner;
-        }
+        // === BỎ HOÀN TOÀN CODE XỬ LÝ FILE ===
+        /*
+        // 2. Xử lý file 'Anh' (Poster) - BỎ
+        if ($request->hasFile('Anh')) { ... }
 
+        // 3. Xử lý file 'Banner' - BỎ
+        if ($request->hasFile('Banner')) { ... }
+        */
+        // === GÁN TRỰC TIẾP URL ===
+        // Dữ liệu 'Anh' và 'Banner' đã có sẵn trong $data từ validate, không cần làm gì thêm.
+
+        // 4. Các trường khác (giữ nguyên)
         $data['TenRutGon'] = Str::slug($data['TenPhim']);
-        $data['NguoiTao'] = auth()->id ?? 0;
-        $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
+        $data['NguoiTao'] = Auth::Id() ?? 0;
 
+        // 5. Tạo Phim (giữ nguyên)
         $phim = Phim::create($data);
 
-        if (!empty($request->input('the_loais'))) {
-            $phim->theLoais()->sync($request->input('the_loais'));
+        // 6. Đồng bộ thể loại (giữ nguyên)
+        if (!empty($data['the_loai'])) {
+            $phim->theLoais()->sync($data['the_loai']);
         }
 
-        return redirect()->route('phim.index')->with('success', 'Thêm phim mới thành công!');
+        return redirect()->route('admin.phim.index')->with('success', 'Thêm phim mới thành công!');
     }
 
     /**
@@ -124,7 +110,8 @@ class PhimController extends Controller
      */
     public function show(Phim $phim)
     {
-        $phim->load('theLoais');
+        $phim->load(['theLoais', 'nguoiTao', 'nguoiCapNhat']); // Eager load các quan hệ cần thiết
+         // Giả sử bạn đã định nghĩa quan hệ BelongsTo 'nguoiTao' và 'nguoiCapNhat' trỏ đến model User/TaiKhoan
         return view('admin.phim.show', compact('phim'));
     }
 
@@ -133,120 +120,98 @@ class PhimController extends Controller
      */
     public function edit(Phim $phim)
     {
-        $the_loais = TheLoai::where('TrangThai', 1)->get();
+        $the_loais = TheLoai::where('TrangThai', 1)->orderBy('TenTheLoai')->get();
         $phim_theloais_ids = $phim->theLoais->pluck('MaTheLoai')->toArray();
-        $defined_nations = $this->defined_nations;
 
-        $phim_nations = []; // Mảng cho checkbox
-        $other_nation = ''; // Chuỗi cho ô "Khác"
-
-        if (!empty($phim->QuocGia)) {
-            $quocGiaData = json_decode($phim->QuocGia, true);
-            
-            // Kiểm tra xem có phải là JSON hợp lệ VÀ có key 'selected' không
-            if (json_last_error() === JSON_ERROR_NONE && is_array($quocGiaData) && isset($quocGiaData['selected'])) {
-                // *** Trường hợp 1: Dữ liệu LÀ JSON (đã lưu theo logic mới) ***
-                $phim_nations = $quocGiaData['selected'] ?? [];
-                $other_nation = $quocGiaData['other'] ?? '';
-            } else {
-                // *** Trường hợp 2: Dữ liệu CŨ (là một chuỗi, không phải JSON) ***
-                $old_data_string = $phim->QuocGia;
-                
-                // Tách chuỗi cũ (giả sử cách nhau bằng dấu phẩy)
-                $old_nations = array_map('trim', explode(',', $old_data_string));
-                
-                foreach ($old_nations as $nation) {
-                    if (in_array($nation, $defined_nations)) {
-                        // Nếu quốc gia có trong danh sách, check nó
-                        $phim_nations[] = $nation;
-                    } else if (!empty($nation)) {
-                        // Nếu không, thêm vào ô "Khác"
-                        $other_nation = empty($other_nation) ? $nation : $other_nation . ', ' . $nation;
-                    }
-                }
-            }
-        }
+        // Xử lý Quốc gia để pre-fill
+        $defined_nations = ['Âu Mỹ', 'Hàn Quốc', 'Trung Quốc', 'Anh', 'Việt Nam', 'Nhật Bản', 'Thái Lan'];
+        $selected_nations = array_map('trim', explode(',', $phim->QuocGia));
+        $other_nation = implode(', ', array_diff($selected_nations, $defined_nations));
+        // Lọc ra các quốc gia đã chọn nằm trong defined_nations
+        $phim_nations = array_intersect($selected_nations, $defined_nations);
 
         return view('admin.phim.edit', compact(
             'phim',
             'the_loais',
             'phim_theloais_ids',
-            'defined_nations',   // <-- Truyền biến mới
-            'phim_nations',      // <-- Truyền biến mới
-            'other_nation'       // <-- Truyền biến mới
+            'defined_nations',
+            'phim_nations', // Các checkbox được check
+            'other_nation' // Phần nhập khác
         ));
     }
 
     /**
-     * Cập nhật phim.
+     * Cập nhật thông tin phim.
      */
     public function update(Request $request, Phim $phim)
     {
-        // **SỬA: Thay đổi validation cho QuocGia**
-        $request->validate([
-            'TenPhim' => 'required|string|max:255|unique:phim,TenPhim,' . $phim->MaPhim . ',MaPhim',
+        // === SỬA VALIDATION ===
+         $data = $request->validate([
+            'TenPhim' => ['required', 'string', 'max:255', Rule::unique('phim')->ignore($phim->MaPhim, 'MaPhim')],
             'ThoiLuong' => 'required|integer|min:1',
-            'quoc_gia' => 'nullable|array',
-            'other_nation' => 'nullable|string',
+            'PhanLoai' => 'required|string',
             'DaoDien' => 'required|string|max:255',
             'DienVien' => 'required|string|max:255',
             'NamPhatHanh' => 'required|integer',
-            'PhanLoai' => 'required|string|max:50',
             'MoTa' => 'required|string',
-            'Anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'Banner' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:4096',
-            'the_loais' => 'nullable|array',
-            'the_loais.*' => 'exists:theloai,MaTheLoai',
+            // Đổi validation ảnh: url và nullable (ảnh không bắt buộc khi update)
+            'Anh' => 'nullable|url|max:1000',
+            'Banner' => 'nullable|url|max:1000',
+            'the_loai' => 'nullable|array',
+            'the_loai.*' => 'exists:theloai,MaTheLoai',
+            'quoc_gia' => 'nullable|array',
+            'other_nation' => 'nullable|string|max:255',
+            'TrangThai' => 'required|integer|in:0,1,2',
         ]);
 
-        $data = $request->except(['quoc_gia', 'other_nation']);
+        // 1. Xử lý Quốc Gia (giữ nguyên)
+        $nations = $request->input('quoc_gia', []);
+        if ($request->filled('other_nation')) {
+            $otherNationsArray = array_map('trim', explode(',', $request->input('other_nation')));
+            $nations = array_merge($nations, $otherNationsArray);
+        }
+        $data['QuocGia'] = implode(', ', array_unique($nations));
 
-        // **SỬA: Gộp 2 trường quốc gia thành 1 chuỗi JSON**
-        $quocGiaData = [
-            'selected' => $request->input('quoc_gia', []),
-            'other' => $request->input('other_nation', '')
-        ];
-        $data['QuocGia'] = json_encode($quocGiaData);
-        // **KẾT THÚC SỬA**
-        
+        // === BỎ HOÀN TOÀN CODE XỬ LÝ FILE ===
+        /*
+        // 2. Xử lý ảnh MỚI (nếu có) - BỎ
+        if ($request->hasFile('Anh')) { ... }
 
-        if ($request->hasFile('Anh')) {
-            if ($phim->Anh) Storage::disk('public')->delete($phim->Anh);
-            $path = $request->file('Anh')->store('uploads/phim', 'public');
-            $data['Anh'] = $path;
+        // 3. Xử lý banner MỚI - BỎ
+        if ($request->hasFile('Banner')) { ... }
+        */
+        // === GÁN TRỰC TIẾP URL ===
+        // Nếu người dùng không nhập URL mới, $data['Anh'] và $data['Banner'] sẽ là null.
+        // Chúng ta cần xử lý để không ghi đè URL cũ bằng null nếu không muốn.
+        // Cách đơn giản: Nếu input rỗng thì giữ nguyên giá trị cũ.
+        if (empty($data['Anh'])) {
+            unset($data['Anh']); // Không cập nhật 'Anh' nếu input rỗng
+        }
+         if (empty($data['Banner'])) {
+            unset($data['Banner']); // Không cập nhật 'Banner' nếu input rỗng
         }
 
-        if ($request->hasFile('Banner')) {
-            if ($phim->Banner) Storage::disk('public')->delete($phim->Banner);
-            $path_banner = $request->file('Banner')->store('uploads/banners', 'public');
-            $data['Banner'] = $path_banner;
-        }
 
+        // 4. Các trường khác (giữ nguyên)
         $data['TenRutGon'] = Str::slug($data['TenPhim']);
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
-        $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
+        $data['NguoiCapNhat'] = Auth::Id() ?? 0;
 
+        // 5. Cập nhật Phim (giữ nguyên)
         $phim->update($data);
 
-        $phim->theLoais()->sync($request->input('the_loais', []));
+        // 6. Đồng bộ lại thể loại (giữ nguyên)
+        $phim->theLoais()->sync($request->input('the_loai', []));
 
-        return redirect()->route('phim.index')->with('success', 'Cập nhật phim thành công!');
+        return redirect()->route('admin.phim.index')->with('success', 'Cập nhật phim thành công!');
     }
 
     /**
-     * Xóa phim.
+     * Xóa phim khỏi database.
      */
     public function destroy(Phim $phim)
     {
-        if ($phim->Anh) {
-            Storage::disk('public')->delete($phim->Anh);
-        }
-        if ($phim->Banner) {
-            Storage::disk('public')->delete($phim->Banner);
-        }
-        
         $phim->delete();
 
-        return redirect()->route('phim.index')->with('success', 'Xóa phim thành công!');
+        return redirect()->route('admin.phim.index')->with('success', 'Xóa phim thành công!');
     }
 }

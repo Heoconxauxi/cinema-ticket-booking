@@ -25,7 +25,7 @@ class TaiKhoan extends Authenticatable
     ];
 
     protected $hidden = [
-        'MatKhau',
+        //'MatKhau',
     ];
 
     public function getAuthPasswordName()

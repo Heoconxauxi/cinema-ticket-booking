@@ -20,14 +20,13 @@ use App\Http\Controllers\Api\HoaDonController;
 
 // Đăng nhập
 Route::post('/admin/login', [AuthController::class, 'loginAdmin']);
+Route::post('/login', [AuthController::class, 'loginUser']);
+Route::post('register', [AuthController::class, 'register']);
 
 // Các route yêu cầu token
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/logout', [AuthController::class, 'logout']);
     Route::get('/admin/profile', fn(Request $r) => $r->user()->load('nguoidung'));
-    
-    Route::apiResource('taikhoan', TaiKhoanController::class);
-    Route::apiResource('nguoidung', NguoiDungController::class);
 });
 
 // Dashboard
@@ -52,3 +51,5 @@ Route::apiResource('thamso', ThamSoController::class);
 Route::get('seat-types', [ThamSoController::class, 'getSeatTypes']);
 Route::get('customer-tiers', [ThamSoController::class, 'getCustomerTiers']);
 Route::apiResource('hoadon', HoaDonController::class);
+Route::apiResource('nguoidung', NguoiDungController::class);
+Route::apiResource('taikhoan', TaiKhoanController::class);

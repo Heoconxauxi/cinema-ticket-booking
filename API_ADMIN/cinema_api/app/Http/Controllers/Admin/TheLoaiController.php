@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TheLoai;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class TheLoaiController extends Controller
 {
@@ -52,7 +53,7 @@ class TheLoaiController extends Controller
         ]);
 
         // 2. Thêm các trường NguoiTao và TrangThai
-        $data['NguoiTao'] = auth()->id ?? 0;
+        $data['NguoiTao'] = Auth::id() ?? 0;
         // Nếu checkbox 'TrangThai' được check thì là 1, ngược lại là 0
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0; 
 
@@ -89,7 +90,7 @@ class TheLoaiController extends Controller
         ]);
 
         // 2. Thêm các trường NguoiCapNhat và TrangThai
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
+        $data['NguoiCapNhat'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
 
         // 3. Cập nhật

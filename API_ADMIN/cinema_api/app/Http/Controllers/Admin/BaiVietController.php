@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\BaiViet;
 use App\Models\ChuDe;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class BaiVietController extends Controller
 {
@@ -43,6 +43,7 @@ class BaiVietController extends Controller
 
     public function store(Request $request)
     {
+        // === SỬA VALIDATION ===
         $data = $request->validate([
             'TenBV' => 'required|string|max:255|unique:baiviet,TenBV',
             'ChuDeBV' => 'required|exists:chude,Id',
@@ -50,21 +51,20 @@ class BaiVietController extends Controller
             'MoTa' => 'required|string',
             'TuKhoa' => 'required|string|max:255',
             'ChiTiet' => 'required|string',
-            'Anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            // Đổi validation ảnh
+            'Anh' => 'nullable|url|max:1000', 
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiTao'] = auth()->id ?? 0;
+        $data['NguoiTao'] = Auth::Id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
         $data['LienKet'] = Str::slug($data['TenBV']);
 
-        // Xử lý Upload Ảnh
-        if ($request->hasFile('Anh')) {
-            // Lưu file vào 'storage/app/public/uploads/baiviet'
-            // Đường dẫn trong DB sẽ là 'uploads/baiviet/ten_file.jpg'
-            $path = $request->file('Anh')->store('uploads/baiviet', 'public');
-            $data['Anh'] = basename($path);
-        }
+        // === BỎ XỬ LÝ UPLOAD ===
+        /*
+        if ($request->hasFile('Anh')) { ... }
+        */
+        // URL ảnh đã có trong $data['Anh']
 
         BaiViet::create($data);
 
@@ -89,6 +89,7 @@ class BaiVietController extends Controller
 
     public function update(Request $request, BaiViet $baiviet)
     {
+         // === SỬA VALIDATION ===
         $data = $request->validate([
             'TenBV' => [
                 'required', 'string', 'max:255',
@@ -99,24 +100,27 @@ class BaiVietController extends Controller
             'MoTa' => 'required|string',
             'TuKhoa' => 'required|string|max:255',
             'ChiTiet' => 'required|string',
-            'Anh' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+             // Đổi validation ảnh
+            'Anh' => 'nullable|url|max:1000',
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
+        $data['NguoiCapNhat'] = Auth::Id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
         $data['LienKet'] = Str::slug($data['TenBV']);
 
-        // Xử lý Upload Ảnh (nếu có ảnh mới)
-        if ($request->hasFile('Anh')) {
-            // 1. Xóa ảnh cũ
-            if ($baiviet->Anh) {
-                Storage::disk('public')->delete('uploads/baiviet/' . $baiviet->Anh);
-            }
-            // 2. Lưu ảnh mới
-            $path = $request->file('Anh')->store('uploads/baiviet', 'public');
-            $data['Anh'] = basename($path);
+        // === BỎ XỬ LÝ UPLOAD VÀ XÓA FILE CŨ ===
+        /*
+        if ($request->hasFile('Anh')) { ... Storage::disk('public')->delete(...); ... }
+        */
+        
+        // Xử lý URL rỗng để không ghi đè URL cũ
+        if (empty($data['Anh'])) {
+            unset($data['Anh']); // Không cập nhật 'Anh' nếu input rỗng
+        } else {
+             // Optional: Nếu có URL mới, có thể xóa ảnh cũ nếu ảnh cũ lưu trữ trên server (hiện tại không cần)
         }
+
 
         $baiviet->update($data);
 
@@ -125,11 +129,6 @@ class BaiVietController extends Controller
 
     public function destroy(BaiViet $baiviet)
     {
-        // 1. Xóa ảnh liên quan
-        if ($baiviet->Anh) {
-            Storage::disk('public')->delete('uploads/baiviet/' . $baiviet->Anh);
-        }
-        
         // 2. Xóa bài viết
         $baiviet->delete();
 

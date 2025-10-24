@@ -13,10 +13,10 @@
                     <div class="d-flex align-items-center">
                         <form method="GET" action="{{ route('admin.baiviet.index') }}" class="d-flex align-items-center me-2">
                             @if (request('searchString'))
-                                <input type="hidden" name="searchString" value="{{ $search }}">
+                            <input type="hidden" name="searchString" value="{{ $search }}">
                             @endif
                             <select class="form-select me-2" name="per_page" onchange="this.form.submit()">
-                                <option value="5"  {{ $per_page == 5 ? 'selected' : '' }}>5</option>
+                                <option value="5" {{ $per_page == 5 ? 'selected' : '' }}>5</option>
                                 <option value="10" {{ $per_page == 10 ? 'selected' : '' }}>10</option>
                                 <option value="20" {{ $per_page == 20 ? 'selected' : '' }}>20</option>
                             </select>
@@ -24,12 +24,11 @@
 
                         <form method="GET" action="{{ route('admin.baiviet.index') }}" class="d-flex align-items-center me-2">
                             @if (request('per_page'))
-                                <input type="hidden" name="per_page" value="{{ $per_page }}">
+                            <input type="hidden" name="per_page" value="{{ $per_page }}">
                             @endif
                             <div class="input-group">
                                 <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
-                                <input type="search" name="searchString" class="form-control" placeholder="Tìm tên bài viết, chủ đề..." 
-                                       value="{{ $search ?? '' }}">
+                                <input type="search" name="searchString" class="form-control" placeholder="Tìm tên bài viết, chủ đề..." value="{{ $search ?? '' }}">
                             </div>
                         </form>
 
@@ -58,9 +57,9 @@
                                     <td>{{ $loop->iteration + ($list_baiviet->currentPage() - 1) * $list_baiviet->perPage() }}</td>
                                     <td>
                                         @if ($item->Anh)
-                                            <img src="{{ Storage::url('uploads/baiviet/' . $item->Anh) }}" alt="{{ $item->TenBV }}" style="width: 100px; height: auto; object-fit: cover;">
+                                        <img src="{{ $item->Anh }}" alt="{{ $item->TenBV }}" style="width: 100px; height: auto; object-fit: cover;" onerror="this.style.display='none'; this.closest('td').innerText = '(Lỗi ảnh)';"> {{-- Hiển thị text lỗi --}}
                                         @else
-                                            (Không có ảnh)
+                                        (Không có ảnh)
                                         @endif
                                     </td>
                                     <td>{{ $item->TenBV }}</td>
@@ -75,10 +74,7 @@
                                     <td>
                                         <a href="{{ route('admin.baiviet.show', $item->Id) }}" class="btn btn-secondary btn-sm">XEM</a>
                                         <a href="{{ route('admin.baiviet.edit', $item->Id) }}" class="btn btn-info btn-sm">SỬA</a>
-                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" 
-                                                data-bs-target="#deleteModal" 
-                                                data-id="{{ $item->Id }}" 
-                                                data-name="{{ $item->TenBV }}">
+                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ $item->Id }}" data-name="{{ $item->TenBV }}">
                                             XOÁ
                                         </button>
                                     </td>
@@ -136,5 +132,6 @@
         var actionUrl = '{{ route("admin.baiviet.destroy", ":id") }}';
         deleteForm.action = actionUrl.replace(':id', itemId);
     });
+
 </script>
 @endpush

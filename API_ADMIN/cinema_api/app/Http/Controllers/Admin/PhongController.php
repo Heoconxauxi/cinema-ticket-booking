@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Phong;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class PhongController extends Controller
 {
@@ -17,17 +18,7 @@ class PhongController extends Controller
         // Lấy 'per_page' từ request, mặc định là 10
         $per_page = $request->input('per_page', 10); 
         
-        // --- LOGIC TÌM KIẾM (ĐỂ LẠI CHO BẠN PHÁT TRIỂN SAU) ---
-        // $search = $request->input('searchString', ''); 
-        // ------------------------------------------------------
-        
         $query = Phong::query(); // Bắt đầu query
-
-        // --- LOGIC TÌM KIẾM (ĐỂ LẠI CHO BẠN PHÁT TRIỂN SAU) ---
-        // if ($search) {
-        //     $query->where('TenPhong', 'like', '%' . $search . '%');
-        // }
-        // ------------------------------------------------------
 
         // Sắp xếp theo TenPhong (Rạp 1, Rạp 2...)
         $list_phong = $query->orderBy('TenPhong', 'asc')->paginate($per_page);
@@ -54,7 +45,7 @@ class PhongController extends Controller
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiTao'] = auth()->id ?? 0;
+        $data['NguoiTao'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0; 
 
         Phong::create($data);
@@ -85,7 +76,7 @@ class PhongController extends Controller
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
+        $data['NguoiCapNhat'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
 
         $phong->update($data);

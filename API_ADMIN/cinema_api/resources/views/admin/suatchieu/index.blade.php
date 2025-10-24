@@ -22,7 +22,14 @@
                                 <option value="50" {{ $per_page == 50 ? 'selected' : '' }}>50</option>
                             </select>
                         </form>
-
+                        <form method="GET" action="{{ route('admin.suatchieu.index') }}" class="d-flex align-items-center me-2">
+                            @if (request('per_page')) <input type="hidden" name="per_page" value="{{ $per_page }}"> @endif
+                            <div class="input-group">
+                                <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
+                                <input type="search" name="searchString" class="form-control" placeholder="Tìm tên phim" 
+                                       value="{{ $search ?? '' }}">
+                            </div>
+                        </form>
                         <a href="{{ route('admin.suatchieu.create') }}" class="btn btn-purple flex-shrink-0">
                             <i class="bi bi-plus"></i> Thêm
                         </a>

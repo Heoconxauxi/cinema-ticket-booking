@@ -9,22 +9,29 @@
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center pb-0">
                     <h5>Danh sách phim</h5>
-                    
+
                     {{-- FORM TÌM KIẾM VÀ LỌC --}}
                     <div class="d-flex align-items-center">
+                        {{-- Form chọn số bản ghi --}}
                         <form method="GET" action="{{ route('admin.phim.index') }}" class="d-flex align-items-center me-2">
-                            
+                            {{-- Giữ lại searchString khi đổi per_page --}}
+                            @if (request('searchString')) <input type="hidden" name="searchString" value="{{ $search }}"> @endif
                             <select class="form-select me-2" name="per_page" onchange="this.form.submit()">
-                                {{-- Giữ lại giá trị per_page cũ --}}
-                                @php $per_page = request('per_page', 5); @endphp 
                                 <option value="5" {{ $per_page == 5 ? 'selected' : '' }}>5</option>
                                 <option value="10" {{ $per_page == 10 ? 'selected' : '' }}>10</option>
                                 <option value="20" {{ $per_page == 20 ? 'selected' : '' }}>20</option>
                                 <option value="50" {{ $per_page == 50 ? 'selected' : '' }}>50</option>
                             </select>
-                            
                         </form>
-
+                        {{-- Form tìm kiếm --}}
+                        <form method="GET" action="{{ route('admin.phim.index') }}" class="d-flex align-items-center me-2">
+                            {{-- Giữ lại per_page khi tìm kiếm --}}
+                            @if (request('per_page')) <input type="hidden" name="per_page" value="{{ $per_page }}"> @endif
+                            <div class="input-group">
+                                <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
+                                <input type="search" name="searchString" class="form-control" placeholder="Tìm tên phim..." value="{{ $search ?? '' }}">
+                            </div>
+                        </form>
                         {{-- Nút Thêm mới --}}
                         <a href="{{ route('admin.phim.create') }}" class="btn btn-purple flex-shrink-0">
                             <i class="bi bi-plus"></i> Thêm
@@ -52,27 +59,21 @@
                             <tbody>
                                 @forelse ($list_phim as $item)
                                 <tr>
-                                    {{-- STT (đã đúng) --}}
                                     <td>{{ $loop->iteration + ($list_phim->currentPage() - 1) * $list_phim->perPage() }}</td>
                                     <td>{{ $item->TenPhim }}</td>
                                     <td>{{ $item->ThoiLuong }} phút</td>
                                     <td>{{ $item->QuocGia }}</td>
-                                    {{-- Thể loại (đã đúng) --}}
                                     <td>{{ $item->theLoais->pluck('TenTheLoai')->implode(', ') ?: 'Chưa xác định' }}</td>
                                     <td>{{ $item->PhanLoai }}</td>
                                     <td>{{ $item->NgayTao->format('d/m/Y H:i') }}</td>
                                     <td>
-                                        {{-- Trạng thái (đã đúng) --}}
-                                        @if ($item->TrangThai == 1)
-                                        <span class="badge bg-success">ON</span>
-                                        @elseif ($item->TrangThai == 2)
-                                        <span class="badge bg-warning">COMING SOON</span>
-                                        @else
-                                        <span class="badge bg-secondary">OFF</span>
+                                        @if ($item->TrangThai == 1) <span class="badge bg-success">ON</span>
+                                        @elseif ($item->TrangThai == 2) <span class="badge bg-warning text-dark">COMING SOON</span>
+                                        @else <span class="badge bg-secondary">OFF</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('admin.phim.show', $item->MaPhim) }}" class="btn btn-secondary btn-sm">CHI TIẾT</a>
+                                        <a href="{{ route('admin.phim.show', $item->MaPhim) }}" class="btn btn-secondary btn-sm">XEM</a>
                                         <a href="{{ route('admin.phim.edit', $item->MaPhim) }}" class="btn btn-info btn-sm">SỬA</a>
                                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="{{ $item->MaPhim }}" data-name="{{ $item->TenPhim }}">
                                             XOÁ
@@ -89,54 +90,42 @@
                     </div>
                 </div>
                 <div class="card-footer">
-                    {{-- Đã đúng: Giữ lại các tham số filter (search, per_page) khi chuyển trang --}}
                     {{ $list_phim->appends(request()->query())->links() }}
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    {{-- Modal Xóa (Copy từ file trước) --}}
+    <div class="modal fade" id="deleteModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteModalLabel">Xác Nhận Xóa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="deleteModalLabel">Xác Nhận Xóa</h5> <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    Bạn có chắc muốn xóa phim <strong id="filmName"></strong>?
-                </div>
+                <div class="modal-body"> Bạn có chắc muốn xóa phim <strong id="itemName"></strong>? </div>
                 <div class="modal-footer">
-                    <form id="deleteForm" method="POST" action=""> {{-- Action sẽ được set bằng JS --}}
-                        @csrf
-                        @method('DELETE')
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button>
-                        <button type="submit" class="btn btn-danger">Có, Xóa!</button>
-                    </form>
+                    <form id="deleteForm" method="POST" action=""> @csrf @method('DELETE') <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Không</button> <button type="submit" class="btn btn-danger">Có, Xóa!</button> </form>
                 </div>
             </div>
         </div>
     </div>
-@endsection
+    @endsection
 
-@push('scripts')
-<script>
-    var deleteModal = document.getElementById('deleteModal');
-    deleteModal.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget;
-        var phimId = button.getAttribute('data-id');
-        var phimName = button.getAttribute('data-name');
+    @push('scripts')
+    {{-- JS cho Modal (Copy từ file trước) --}}
+    <script>
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            var itemId = button.getAttribute('data-id');
+            var itemName = button.getAttribute('data-name');
+            var modalTitle = deleteModal.querySelector('#itemName');
+            var deleteForm = deleteModal.querySelector('#deleteForm');
+            modalTitle.textContent = itemName;
+            var actionUrl = '{{ route("admin.phim.destroy", ":id") }}';
+            deleteForm.action = actionUrl.replace(':id', itemId);
+        });
 
-        var modalTitle = deleteModal.querySelector('#filmName');
-        var deleteForm = deleteModal.querySelector('#deleteForm');
-
-        modalTitle.textContent = phimName;
-        
-        // **CẢI TIẾN: Dùng route() để tạo URL an toàn hơn**
-        // Tạo một URL mẫu và thay thế :id bằng ID thật
-        var actionUrl = '{{ route("admin.phim.destroy", ":id") }}';
-        deleteForm.action = actionUrl.replace(':id', phimId);
-    });
-
-</script>
-@endpush
+    </script>
+    @endpush

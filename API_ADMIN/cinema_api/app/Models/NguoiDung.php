@@ -12,6 +12,8 @@ class NguoiDung extends Model
     protected $table = 'nguoidung';
     protected $primaryKey = 'MaND';
 
+    public $incrementing = false;
+    
     public $timestamps = true;
     const CREATED_AT = 'NgayTao';
     const UPDATED_AT = 'NgayCapNhat';
@@ -27,6 +29,10 @@ class NguoiDung extends Model
         'NguoiTao',
         'NguoiCapNhat',
         'TrangThai',
+    ];
+
+    protected $casts = [
+        'NgaySinh' => 'datetime',
     ];
 
     public function taiKhoan()

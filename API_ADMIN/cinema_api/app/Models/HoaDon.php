@@ -25,6 +25,10 @@ class HoaDon extends Model
         'TrangThai',
     ];
 
+    protected $casts = [
+        'NgayLapHD' => 'datetime',
+    ];
+
     public function nguoiDung()
     {
         return $this->belongsTo(NguoiDung::class, 'MaND', 'MaND');

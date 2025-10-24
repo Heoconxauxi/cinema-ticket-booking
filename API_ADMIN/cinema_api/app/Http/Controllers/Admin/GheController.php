@@ -8,6 +8,7 @@ use App\Models\Phong;
 use App\Models\ThamSo; // Dùng để lấy giá ghế
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class GheController extends Controller
 {
@@ -75,7 +76,7 @@ class GheController extends Controller
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiTao'] = auth()->id ?? 0;
+        $data['NguoiTao'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
 
         Ghe::create($data);
@@ -120,7 +121,7 @@ class GheController extends Controller
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
+        $data['NguoiCapNhat'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
 
         $ghe->update($data);

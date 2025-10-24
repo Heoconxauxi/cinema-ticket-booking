@@ -8,6 +8,7 @@ use App\Models\Phim;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class ChuDeController extends Controller
 {
@@ -51,7 +52,7 @@ class ChuDeController extends Controller
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiTao'] = auth()->id ?? 0;
+        $data['NguoiTao'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
         $data['TenRutGon'] = Str::slug($data['TenChuDe']);
 
@@ -79,7 +80,7 @@ class ChuDeController extends Controller
             'TrangThai' => 'nullable'
         ]);
 
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
+        $data['NguoiCapNhat'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
         $data['TenRutGon'] = Str::slug($data['TenChuDe']);
 

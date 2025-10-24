@@ -58,10 +58,14 @@ class SuatChieuController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(SuatChieu $suatChieu)
+    public function show($id)
     {
-        $suatChieu->load('phim', 'phong');
-        
+        $suatChieu = SuatChieu::with([
+            'phim',
+            'phong.ghes',
+            'chiTietHoaDons'
+        ])->where('MaSuatChieu', $id)->firstOrFail();
+
         return response()->json([
             'success' => true,
             'data' => $suatChieu

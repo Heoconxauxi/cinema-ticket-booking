@@ -59,6 +59,8 @@ class PhongController extends Controller
      */
     public function show(Phong $phong)
     {
+        $phong->load('ghes');
+
         return response()->json([
             'success' => true,
             'data' => $phong

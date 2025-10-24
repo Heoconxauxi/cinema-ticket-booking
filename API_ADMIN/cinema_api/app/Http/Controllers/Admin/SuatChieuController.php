@@ -7,6 +7,7 @@ use App\Models\SuatChieu;
 use App\Models\Phim;
 use App\Models\Phong;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SuatChieuController extends Controller
 {
@@ -61,7 +62,7 @@ class SuatChieuController extends Controller
         ]);
 
         // 2. Thêm dữ liệu
-        $data['NguoiTao'] = auth()->id ?? 0;
+        $data['NguoiTao'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
 
         // 3. Tạo
@@ -96,7 +97,7 @@ class SuatChieuController extends Controller
         ]);
 
         // 2. Thêm dữ liệu
-        $data['NguoiCapNhat'] = auth()->id ?? 0;
+        $data['NguoiCapNhat'] = Auth::id() ?? 0;
         $data['TrangThai'] = $request->has('TrangThai') ? 1 : 0;
 
         // 3. Cập nhật

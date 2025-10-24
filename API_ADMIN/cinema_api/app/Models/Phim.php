@@ -62,4 +62,14 @@ class Phim extends Model
     {
         return $this->hasMany(SuatChieu::class, 'MaPhim', 'MaPhim');
     }
+
+    public function nguoiTao()
+    {
+        return $this->belongsTo(NguoiDung::class, 'NguoiTao', 'MaND');
+    }
+
+    public function nguoiCapNhat()
+    {
+        return $this->belongsTo(NguoiDung::class, 'NguoiCapNhat', 'MaND');
+    }
 }

@@ -1,17 +1,22 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PhimController;
-use App\Http\Controllers\Admin\HomeController;
 use App\Http\Controllers\Admin\TheLoaiController;
 use App\Http\Controllers\Admin\SuatChieuController;
 use App\Http\Controllers\Admin\PhongController;
 use App\Http\Controllers\Admin\GheController;
 use App\Http\Controllers\Admin\ChuDeController;
 use App\Http\Controllers\Admin\BaiVietController;
+use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\MenuController;
+use App\Http\Controllers\Admin\ThamSoController;
+use App\Http\Controllers\Admin\NguoiDungController;
+use App\Http\Controllers\Admin\TaiKhoanController;
+use App\Http\Controllers\Admin\HoaDonController;
 
 // --- ADMIN ROUTES ---
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -26,17 +31,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Chúng ta dùng middleware 'auth' (mặc định của Laravel)
     // và 'auth.admin' (chúng ta vừa tạo)
     Route::middleware(['auth', 'auth.admin'])->group(function () {
-        //Home
-        Route::get('/home', [HomeController::class, 'index'])->name('home');
-        
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         
         // Logout
         Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
         // ... TẤT CẢ CÁC ROUTE ADMIN KHÁC CỦA BẠN SẼ ĐẶT Ở ĐÂY ...
         // (Ví dụ: Quản lý Phim, Quản lý Suất chiếu, v.v.)
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::resource('phim', PhimController::class);
         Route::resource('theloai', TheLoaiController::class);
         Route::resource('suatchieu', SuatChieuController::class);
@@ -44,13 +45,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('ghe', GheController::class);
         Route::resource('chude', ChuDeController::class);
         Route::resource('baiviet', BaiVietController::class);
+        Route::resource('slider', SliderController::class);
         Route::resource('menu', MenuController::class);
-
+        Route::resource('thamso', ThamSoController::class);
+        Route::resource('nguoidung', NguoiDungController::class);
+        Route::resource('taikhoan', TaiKhoanController::class);
+        Route::resource('hoadon', HoaDonController::class);
     });
 });
 
-// Thêm một route gốc để chuyển hướng
 Route::get('/', function () {
-    // Chúng ta dùng route() helper với tên route 'admin.login.form'
-    return 'Đây là trang chủ. Tới <a href="' . route('admin.login.form') . '">Admin Login</a>';
+    // Kiểm tra xem người dùng đã đăng nhập hay chưa
+    if (Auth::check()) { 
+        // Nếu đã đăng nhập, chuyển hướng đến trang dashboard admin
+        return redirect()->route('admin.dashboard'); // Đảm bảo bạn có route tên 'admin.dashboard'
+    }
+    // Nếu chưa đăng nhập, chuyển hướng đến trang login
+    return redirect()->route('admin.login.form'); 
 });

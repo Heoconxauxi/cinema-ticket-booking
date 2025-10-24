@@ -23,7 +23,14 @@
                                 <option value="50" {{ $per_page == 50 ? 'selected' : '' }}>50</option>
                             </select>
                         </form>
-
+                        <form method="GET" action="{{ route('admin.theloai.index') }}" class="d-flex align-items-center me-2">
+                            @if (request('per_page')) <input type="hidden" name="per_page" value="{{ $per_page }}"> @endif
+                            <div class="input-group">
+                                <span class="input-group-text text-body"><i class="fas fa-search" aria-hidden="true"></i></span>
+                                <input type="search" name="searchString" class="form-control" placeholder="Tìm tên" 
+                                       value="{{ $search ?? '' }}">
+                            </div>
+                        </form>
                         {{-- Nút Thêm mới --}}
                         <a href="{{ route('admin.theloai.create') }}" class="btn btn-purple flex-shrink-0">
                             <i class="bi bi-plus"></i> Thêm
