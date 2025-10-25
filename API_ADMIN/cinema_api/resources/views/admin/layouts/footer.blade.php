@@ -2,7 +2,7 @@
     <div class="container-fluid">
         <p class="mb-0 text-muted">
             © {{ date('Y') }} <b>LALALAND</b> | Make by 
-            <span class="text-primary">o\/o</span>
+            <span class="text-primary">NEFER</span>
         </p>
     </div>
 </footer>

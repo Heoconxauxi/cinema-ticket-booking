@@ -3,7 +3,6 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController; 
-use App\Http\Controllers\Api\DashboardController; 
 use App\Http\Controllers\Api\PhongController; 
 use App\Http\Controllers\Api\GheController; 
 use App\Http\Controllers\Api\TheLoaiController; 
@@ -27,14 +26,6 @@ Route::post('register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/logout', [AuthController::class, 'logout']);
     Route::get('/admin/profile', fn(Request $r) => $r->user()->load('nguoidung'));
-});
-
-// Dashboard
-Route::prefix('dashboard')->group(function () {
-    Route::get('stats', [DashboardController::class, 'getStats']);
-    Route::get('daily-revenue-report', [DashboardController::class, 'getDailyRevenueReport']);
-    Route::get('monthly-revenue-report', [DashboardController::class, 'getMonthlyRevenueReport']);
-    Route::get('top-customers', [DashboardController::class, 'getTopCustomers']);
 });
 
 // Các API khác

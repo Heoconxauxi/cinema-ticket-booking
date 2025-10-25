@@ -32,16 +32,10 @@ class NguoiDungController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(NguoiDung $nguoiDung)
     {
-        $nguoiDung = NguoiDung::with(['taiKhoan'])
-                            ->where('MaND', $id)
-                            ->firstOrFail();
-
-        return response()->json([
-            'success' => true,
-            'data' => $nguoiDung
-        ]);
+        $nguoiDung->load('taikhoan');
+        return response()->json(['success' => true, 'data' => $nguoiDung]);
     }
 
     /**
