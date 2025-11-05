@@ -51,3 +51,10 @@ Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 // ====================== API: LẤY THÔNG TIN NGƯỜI DÙNG HIỆN TẠI =======================
 use App\Http\Controllers\Api\NguoiDungController;
 Route::get('/api/current-user', [NguoiDungController::class, 'getCurrentUser'])->name('api.currentUser');
+
+
+use App\Http\Controllers\StripeController;
+use App\Http\Controllers\HoaDonController;
+
+Route::post('/stripe-intent', [StripeController::class, 'createIntent']);
+Route::post('/hoadon', [HoaDonController::class, 'store'])->name('hoadon.store');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TaiKhoanApiController;
 use App\Http\Controllers\Api\PhimApiController;
 use App\Http\Controllers\Api\SuatChieuApiController;
 use App\Http\Controllers\Api\SliderApiController;
+use App\Http\Controllers\Api\StripeController;
 
 // ========================= //
 //  AUTHENTICATION (API)    //
@@ -30,3 +31,8 @@ Route::get('/suatchieu/{id}', [SuatChieuApiController::class, 'show']); // chi t
 //  SLIDER (API)             //
 // ========================= //
 Route::get('/slider', [SliderApiController::class, 'index']); // banner / carousel
+
+// ========================= //
+//  STRIPE PAYMENT (API)     //
+// ========================= //
+
